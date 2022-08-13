@@ -178,10 +178,10 @@ def create_venue_submission():
       )
       db.session.add(venue)
       db.session.commit()
-      # flash('Venue ' + request.form.get("name")+ ' was successfully listed!')
+      flash('Venue ' + request.form.get("name")+ ' was successfully listed!')
     except:
       db.session.rollback()
-      # flash('An error occurred. Venue ' + request.form.get("name")  + ' could not be listed.')
+      flash('An error occurred. Venue ' + request.form.get("name")  + ' could not be listed.')
       print(sys.exc_info())
     finally:
       db.session.close()
@@ -324,8 +324,10 @@ def edit_artist_submission(artist_id):
       
     db.session.add(artist)
     db.session.commit()
+    flash('Venue update was successfully ')
   except:
     db.session.rollback()
+    flash('Venue update was unsuccessfully ')
     print(sys.exc_info())
   finally:
       db.session.close()
@@ -362,8 +364,10 @@ def edit_venue_submission(venue_id):
       
     db.session.add(venue)
     db.session.commit()
+    flash('Venue update was successfully ')
   except:
     db.session.rollback()
+    flash('Venue update was unsuccessfully ')
     print(sys.exc_info())
   finally:
     db.session.close()
@@ -400,19 +404,15 @@ def create_artist_submission():
       )
       db.session.add(artist)
       db.session.commit()
-      # flash('Venue ' + request.form.get("name")+ ' was successfully listed!')
+      flash('Artist ' + request.form['name'] + ' was successfully listed!')
     except:
       db.session.rollback()
-      # flash('An error occurred. Venue ' + request.form.get("name")  + ' could not be listed.')
+      flash('An error occurred. Artist ' + request.form['name']+ ' could not be listed.')
       print(sys.exc_info())
     finally:
       db.session.close()
   return render_template('pages/home.html')
 
-  # if error:
-  #   flash('An error occurred. Artist ' + request.form['name']+ ' could not be listed.')
-  # else:
-  #   flash('Artist ' + request.form['name'] + ' was successfully listed!')
   # on successful db insert, flash success
   # flash('Artist ' + request.form['name'] + ' was successfully listed!')
   # TODO: on unsuccessful db insert, flash an error instead.
@@ -462,19 +462,16 @@ def create_show_submission():
     )
     db.session.add(show)
     db.session.commit()
+    flash('Show was successfully listed!')
   # on successful db insert, flash success
   # TODO: on unsuccessful db insert, flash an error instead.
   except:
     db.session.rollback()
+    flash('An error occurred. Show could not be listed.')
     print(sys.exc_info())
   finally:
     db.session.close()
   return render_template('pages/home.html')
-  
-  # if error:
-  #   flash('An error occurred. Show could not be listed.')
-  # else:
-  #   flash('Show was successfully listed!')
 
   # e.g., flash('An error occurred. Show could not be listed.')
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
