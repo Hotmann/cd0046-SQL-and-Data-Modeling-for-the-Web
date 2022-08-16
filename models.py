@@ -1,3 +1,4 @@
+from email.policy import default
 from config import app
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -22,10 +23,10 @@ class Venue(db.Model):
     image_link = db.Column(db.String(500), nullable=False)
     facebook_link = db.Column(db.String(120), nullable=False)
     image_link = db.Column(db.String(500))
-    seeking_talent = db.Column(db.Boolean, nullable=True, default=True)
+    seeking_talent = db.Column(db.Boolean, default=True)
     website = db.Column(db.String(120))
     seeking_description = db.Column(db.String(120))
-    genres = db.Column(db.String)
+    genres = db.Column(db.String(120))
     show = db.relationship("Show", backref="venue", lazy=True)
 
     def __repr__(self):
@@ -40,12 +41,12 @@ class Artist(db.Model):
     name = db.Column(db.String)
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
-    phone = db.Column(db.String)
+    phone = db.Column(db.String(120))
     genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     website = db.Column(db.String(120))
-    seeking_venue = db.Column(db.Boolean, nullable=True)
+    seeking_venue = db.Column(db.Boolean, nullable=True, default=True)
     seeking_description = db.Column(db.String(120))
     show = db.relationship("Show", backref="artist", lazy=True)
 
