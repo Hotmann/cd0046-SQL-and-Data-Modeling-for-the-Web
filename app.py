@@ -56,10 +56,10 @@ def venues():
     # cur_venue = ({venue.city}, {venue.state})
     upcoming_shows = Show.query.filter(Show.venue_id == venue.id, Show.start_time > datetime.now().strftime('%Y-%m-%d %H:%M:%S')).count
 
-    if venue not in data:
-      data.append({"city": venue.city, "state": venue.state, "venues": []})
+    if (venue.city and venue.state) not in data:
+      data.append({"city": venue.city, "state": venue.state, "venues": []}) 
       i += 1
-
+    
     data[i]["venues"].append(
       {
           "id": venue.id,
@@ -124,7 +124,7 @@ def show_venue(venue_id):
   data = {
     "id": venue.id,
     "name": venue.name,
-    "genres": venue.genres,
+    "genres": json.loads(venue.genres),
     "address": venue.address,
     "city": venue.city,
     "state": venue.state,
@@ -163,13 +163,12 @@ def create_venue_submission():
       venue.state = form.state.data
       venue.address = form.address.data
       venue.phone = form.phone.data
-      venue.genres = form.genres.data
       venue.image_link = form.image_link.data
       venue.facebook_link = form.facebook_link.data
       venue.website = form.website_link.data
       venue.seeking_talent = form.seeking_talent.data
       venue.seeking_description = form.seeking_description.data
-      venue.genres= ",".join(form.genres.data)
+      venue.genres= json.dumps(form.genres.data)
       db.session.add(venue)
       db.session.commit()
       flash('Venue ' + request.form.get("name")+ ' was successfully listed!')
@@ -187,7 +186,7 @@ def create_venue_submission():
 # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
 
 
-@app.route('/venues/<venue_id>/delete>', methods=['POST'])
+@app.route('/venues/<venue_id>>', methods=['POST'])
 def delete_venue(venue_id):
   # TODO: Complete this endpoint for taking a venue_id, and using
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
@@ -202,9 +201,9 @@ def delete_venue(venue_id):
     db.session.close()
 
   if error:
-    flash('Could not delete ''!')
+    flash('Venue' + venue.name + ' could not be deleted !')
   else:
-    flash('Successfully deleted!')
+    flash('Venue ' + venue.name + ' was successfully deleted !')
  
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
@@ -271,7 +270,7 @@ def show_artist(artist_id):
   data = {
     "id": artist.id,
     "name": artist.name,
-    "genres": artist.genres,
+    "genres": json.loads(artist.genres),
     "city": artist.city,
     "state": artist.state,
     "phone": artist.phone,
@@ -305,22 +304,21 @@ def edit_artist_submission(artist_id):
   
 
   try:
-    artist.name=request.form['name'],
-    artist.city=request.form['city'],
-    artist.state=request.form['state'],
-    artist.phone=request.form['phone'],
-    artist.genres=(request.form.getlist['genres'])
-    artist.image_link=request.form['image_link'],
-    artist.facebook_link=request.form['facebook_link'],
-    artist.website=request.form['website_link'],
-    artist.seeking_venue=request.form['seeking_venue'],
-    artist.seeking_description=request.form['seeking_description'],
-    db.session.add(artist)
+    artist.name = form.name.data
+    artist.city = form.city.data
+    artist.state = form.state.data
+    artist.phone = form.phone.data
+    artist.genres= json.dumps(form.genres.data)
+    artist.image_link = form.image_link.data
+    artist.facebook_link = form.facebook_link.data
+    artist.website = form.website_link.data
+    artist.seeking_venue = form.seeking_venue.data
+    artist.seeking_description = form.seeking_description.data
     db.session.commit()
-    flash('Artist update was successfully ')
+    flash('Artist '+request.form['name']+' update was successful ')
   except:
     db.session.rollback()
-    flash('Artist update was unsuccessfully ')
+    flash('Artist '+request.form['name']+' update was unsuccessful ')
     print(sys.exc_info())
   finally:
       db.session.close()
@@ -339,25 +337,26 @@ def edit_venue(venue_id):
 def edit_venue_submission(venue_id):
   # TODO: take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
+  form = VenueForm(request.form)
   venue = Venue.query.get(venue_id)
+
   try:
-    venue.name=request.form['name'],
-    venue.city=request.form['city'],
-    venue.state=request.form['state'],
-    venue.address=request.form['address'],
-    venue.phone=request.form['phone'],
-    venue.image_link=request.form['image_link'],
-    venue.facebook_link=request.form['facebook_link'],
-    venue.website=request.form['website_link'],
-    venue.seeking_talent=request.form['seeking_talent'],
-    venue.seeking_description=request.form['seeking_description'],
-    venue.genres=request.form['genres']
-    db.session.add(venue)
+    venue.name = form.name.data
+    venue.city = form.city.data
+    venue.state = form.state.data
+    venue.address=form.address.data,
+    venue.phone = form.phone.data
+    venue.image_link = form.image_link.data
+    venue.facebook_link = form.facebook_link.data
+    venue.website = form.website_link.data
+    venue.seeking_talent = form.seeking_talent.data
+    venue.seeking_description = form.seeking_description.data
+    venue.genres= json.dumps(form.genres.data)
     db.session.commit()
-    flash('Venue update was successful ')
+    flash('Venue '+request.form['name']+' update was successful ')
   except:
     db.session.rollback()
-    flash('Venue update was unsuccessful ')
+    flash('Venue '+request.form['name']+' update was unsuccessful ')
     print(sys.exc_info())
   finally:
     db.session.close()
@@ -384,13 +383,12 @@ def create_artist_submission():
       artist.city = form.city.data
       artist.state = form.state.data
       artist.phone = form.phone.data
-      artist.genres = form.genres.data
+      artist.genres= json.dumps(form.genres.data)
       artist.image_link = form.image_link.data
       artist.facebook_link = form.facebook_link.data
       artist.website = form.website_link.data
       artist.seeking_venue = form.seeking_venue.data
       artist.seeking_description = form.seeking_description.data
-      artist.genres= ",".join(form.genres.data)
       db.session.add(artist)
       db.session.commit()
       flash('Artist ' + request.form['name'] + ' was successfully listed!')
