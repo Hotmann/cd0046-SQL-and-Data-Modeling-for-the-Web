@@ -7,14 +7,39 @@ from traceback import format_list
 from wsgiref import validate
 import dateutil.parser
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for
+from flask import (
+  Flask, 
+  render_template, 
+  request,
+  Response, 
+  flash, 
+  redirect, 
+  url_for
+)
+from flask_migrate import Migrate
+from flask_moment import Moment
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
 from models import *
 from config import app
+from datetime import datetime
 
+#----------------------------------------------------------------------------#
+# App Config.
+#----------------------------------------------------------------------------#
+
+
+# TODO: connect to a local postgresql database
+
+app = Flask(__name__)
+moment = Moment(app)
+app.config.from_object('config')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
+
+migrate = Migrate(app, db)
 
 #----------------------------------------------------------------------------#
 # Filters.
@@ -47,26 +72,24 @@ def venues():
   # TODO: replace with real venues data.
   #       num_upcoming_shows should be aggregated based on number of upcoming shows per venue.
   
-  venues = Venue.query.with_entities(Venue.id, Venue.name, Venue.state, Venue.city).order_by(Venue.city, Venue.state).all()
+  venues = Venue.query.all()
+
+  areas = Venue.query.distinct(Venue.state, Venue.city).all()
 
   data = []
-  i = -1
 
-  for venue in venues:
-    # cur_venue = ({venue.city}, {venue.state})
-    upcoming_shows = Show.query.filter(Show.venue_id == venue.id, Show.start_time > datetime.now().strftime('%Y-%m-%d %H:%M:%S')).count
-
-    if (venue.city and venue.state) not in data:
-      data.append({"city": venue.city, "state": venue.state, "venues": []}) 
-      i += 1
+  for area in areas:
     
-    data[i]["venues"].append(
-      {
+    data.append({
+      "city": area.city,
+      "state": area.state, 
+      "venues": [{
           "id": venue.id,
           "name": venue.name,
-          "num_upcoming_shows": upcoming_shows
-      }
-      )
+          "num_upcoming_shows": len([show for show in venue.show if show.start_time > datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+      } for venue in venues if
+          venue.city == area.city and venue.state == area.state]
+      }) 
   return render_template('pages/venues.html', areas=data)
 
 
@@ -103,23 +126,18 @@ def show_venue(venue_id):
   past_shows = []
   upcoming_shows = []
 
-  past_show = Show.query.join(Artist).filter(Show.venue_id==venue_id, Show.start_time < current_time)
-  for show in past_show:
-    past_shows.append({
+  for show in venue.show:
+    ven_show = {
       "artist_id": show.artist_id,
       "artist_name": show.artist.name,
       "artist_image_link": show.artist.image_link,
       "start_time": show.start_time
-    })
+    }
 
-  upcoming_show = Show.query.join(Artist).filter(Show.venue_id==venue_id, Show.start_time > current_time)
-  for show in upcoming_show:
-    upcoming_shows.append({
-        "artist_id": show.artist_id,
-        "artist_name": show.artist.name,
-        "artist_image_link": show.artist.image_link,
-        "start_time": show.start_time
-    })
+    if show.start_time <= current_time:
+      past_shows.append(ven_show)
+    else:
+      upcoming_shows.append(ven_show)
 
   data = {
     "id": venue.id,
@@ -147,7 +165,7 @@ def show_venue(venue_id):
 
 @app.route('/venues/create', methods=['GET'])
 def create_venue_form():
-  form = VenueForm()
+  form = VenueForm(request)
   return render_template('forms/new_venue.html', form=form)
 
 @app.route('/venues/create', methods=['POST'])
@@ -187,7 +205,7 @@ def create_venue_submission():
 # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
 
 
-@app.route('/venues/<venue_id>>', methods=['POST'])
+@app.route('/venues/<venue_id>', methods=['POST'])
 def delete_venue(venue_id):
   # TODO: Complete this endpoint for taking a venue_id, and using
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
@@ -251,23 +269,20 @@ def show_artist(artist_id):
   past_shows = []
   upcoming_shows = []
 
-  past_show = Show.query.join(Artist).filter(Show.artist_id==artist_id, Show.start_time < current_time)
-  for show in past_show:
-    past_shows.append({
-      "venue_id": show.venue_id,
-      "venue_name": show.venue.name,
-      "venue_image_link": show.venue.image_link,
+  for show in artist.show:
+    art_show = {
+      "artist_id": show.artist_id,
+      "artist_name": show.artist.name,
+      "artist_image_link": show.artist.image_link,
       "start_time": show.start_time
-    })
+    }
 
-  upcoming_show = Show.query.join(Venue).filter(Show.artist_id==artist_id, Show.start_time > current_time)
-  for show in upcoming_show:
-    upcoming_shows.append({
-        "venue_id": show.venue_id,
-        "venue_name": show.venue.name,
-        "venue_image_link": show.venue.image_link,
-        "start_time": show.start_time
-    })
+    if show.start_time <= current_time:
+      past_shows.append(art_show)
+    else:
+      upcoming_shows.append(art_show)
+
+  
   data = {
     "id": artist.id,
     "name": artist.name,
