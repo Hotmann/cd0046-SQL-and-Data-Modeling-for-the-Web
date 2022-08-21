@@ -137,8 +137,7 @@ class VenueForm(FlaskForm):
     )
     def validate(self):
         rv = FlaskForm.validate(self)
-        print (self.data)
-        if rv:
+        if  rv:
             return False
         if not valid_phone(self.phone.data):
             self.phone.errors.append('Invalid phone.')

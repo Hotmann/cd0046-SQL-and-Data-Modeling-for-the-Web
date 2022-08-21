@@ -120,7 +120,7 @@ def show_venue(venue_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
 
-  venue = Venue.query.get(venue_id)
+  venue = Venue.query.get_or_404(venue_id)
   current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
   past_shows = []
@@ -211,7 +211,7 @@ def delete_venue(venue_id):
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
   error = False
   try:
-    venue = Venue.query.get(venue_id)
+    venue = Venue.query.get_or_404(venue_id)
     db.session.delete(venue)
     db.session.commit()
   except:
@@ -263,7 +263,7 @@ def search_artists():
 def show_artist(artist_id):
   # shows the artist page with the given artist_id
   # TODO: replace with real artist data from the artist table, using artist_id
-  artist = Artist.query.get(artist_id)
+  artist = Artist.query.get_or_404(artist_id)
   current_time = datetime.now().strftime('%Y-%m-%d %H:%S:%M')
   
   past_shows = []
@@ -316,7 +316,7 @@ def edit_artist_submission(artist_id):
   # TODO: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
   form = ArtistForm(request.form)
-  artist = Artist.query.get(artist_id)
+  artist = Artist.query.get_or_404(artist_id)
   
   if form.validate():
     try:
@@ -343,7 +343,7 @@ def edit_artist_submission(artist_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
-  form = VenueForm()
+  form = VenueForm(request.form)
   venue=Venue.query.get(venue_id)
 
   # TODO: populate form with values from venue with ID <venue_id>
@@ -354,14 +354,14 @@ def edit_venue_submission(venue_id):
   # TODO: take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
   form = VenueForm(request.form)
-  venue = Venue.query.get(venue_id)
+  venue = Venue.query.get_or_404(venue_id)
 
   if form.validate():
     try:
       venue.name = form.name.data
       venue.city = form.city.data
       venue.state = form.state.data
-      venue.address=form.address.data,
+      venue.address = form.address.data
       venue.phone = form.phone.data
       venue.image_link = form.image_link.data
       venue.facebook_link = form.facebook_link.data
@@ -373,6 +373,7 @@ def edit_venue_submission(venue_id):
       flash('Venue '+request.form['name']+' update was successful ')
     except:
       db.session.rollback()
+      flash(form.errors)
       flash('Venue '+request.form['name']+' update was unsuccessful ')
       print(sys.exc_info())
     finally:

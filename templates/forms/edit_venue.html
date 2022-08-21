@@ -18,7 +18,7 @@ block content %}
       <div class="form-inline">
         <div class="form-group">
           {{ form.city(class_ = 'form-control', placeholder='City', autofocus =
-          true, value=venue.state) }}
+          true, value=venue.city) }}
         </div>
         <div class="form-group">
           {{ form.state(class_ = 'form-control', placeholder='State', autofocus
@@ -45,7 +45,7 @@ block content %}
     <div class="form-group">
       <label for="facebook_link">Facebook Link</label>
       {{ form.facebook_link(class_ = 'form-control', placeholder='http://',
-      autofocus = true,value=venue.facebook_link) }}
+      autofocus = true, value=venue.facebook_link) }}
     </div>
 
     <div class="form-group">
@@ -63,7 +63,7 @@ block content %}
     <div class="form-group">
       <label for="seeking_talent">Looking for Talent</label>
       {{ form.seeking_talent(placeholder='Venue', autofocus = true,
-      value=venue.seeking_talent) }}
+      checked=venue.seeking_talent) }}
     </div>
 
     <div class="form-group">
